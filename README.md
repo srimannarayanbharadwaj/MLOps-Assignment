@@ -1,4 +1,4 @@
-# Heart Disease MLOps
+# MLOps Assignment: Heart Disease MLOps
 
 End-to-end MLOps assignment project for the UCI Heart Disease dataset.
 
@@ -6,16 +6,16 @@ End-to-end MLOps assignment project for the UCI Heart Disease dataset.
 
 ```text
 heart-disease-mlops/
-├── data/
-│   ├── raw/
-│   └── processed/
-├── notebooks/
-├── src/
-├── tests/
-├── .github/workflows/
-├── k8s/
-├── screenshots/
-└── report/
+|-- data/
+|   |-- raw/
+|   `-- processed/
+|-- notebooks/
+|-- src/
+|-- tests/
+|-- .github/workflows/
+|-- k8s/
+|-- screenshots/
+`-- report/
 ```
 
 ## Planned Workflow
