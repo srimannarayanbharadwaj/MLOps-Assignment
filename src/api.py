@@ -3,17 +3,40 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Histogram,
+    generate_latest,
+)
 from pydantic import BaseModel, Field
 
 
 MODEL_PATH = Path("models/heart_disease_pipeline.joblib")
 METADATA_PATH = Path("models/model_metadata.json")
+
+logger = logging.getLogger("heart_disease_api")
+logging.basicConfig(level=logging.INFO)
+
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status_code"],
+)
+REQUEST_LATENCY = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request latency in seconds",
+    ["method", "endpoint"],
+)
 
 
 class HeartDiseaseRequest(BaseModel):
@@ -69,6 +92,33 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next) -> Response:
+    """Log request metadata and expose Prometheus counters/histograms."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration = time.perf_counter() - start
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    logger.info(
+        "timestamp=%s endpoint=%s method=%s status=%s latency_ms=%.2f",
+        timestamp,
+        request.url.path,
+        request.method,
+        response.status_code,
+        duration * 1000,
+    )
+
+    endpoint = request.url.path
+    REQUEST_COUNT.labels(
+        request.method,
+        endpoint,
+        str(response.status_code),
+    ).inc()
+    REQUEST_LATENCY.labels(request.method, endpoint).observe(duration)
+    return response
+
+
 @app.get("/health")
 def health_check() -> dict:
     """Return service and model health information."""
@@ -78,6 +128,15 @@ def health_check() -> dict:
         "model_loaded": MODEL_PATH.exists(),
         "model_name": metadata.get("model_name", "unknown"),
     }
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Expose Prometheus metrics in text format."""
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 
 @app.post("/predict", response_model=PredictionResponse)

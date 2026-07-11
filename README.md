@@ -119,3 +119,19 @@ To remove the deployment:
 kubectl delete -f k8s/
 minikube stop
 ```
+
+## Monitoring
+
+The API logs every request with timestamp, endpoint, method, status code,
+and latency. Prometheus metrics are exposed at `/metrics`.
+
+```powershell
+uvicorn src.api:app --host 127.0.0.1 --port 8080
+```
+
+In a second terminal:
+
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:8080/health -Method Get
+Invoke-RestMethod -Uri http://127.0.0.1:8080/metrics -Method Get
+```
