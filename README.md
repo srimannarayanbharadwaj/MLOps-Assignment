@@ -30,10 +30,13 @@ heart-disease-mlops/
 
 ## Setup
 
+Use Python 3.12 for this project. Python 3.14 can run the training script,
+but the MLflow UI may fail because some MLflow dependencies have not fully
+caught up with Python 3.14 yet.
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
