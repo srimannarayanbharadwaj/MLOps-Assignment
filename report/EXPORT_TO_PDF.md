@@ -16,7 +16,22 @@ Keep screenshots and metrics, but change the explanations so they reflect your u
 
 ## Step 2 — Export options
 
-### Option A: VS Code extension (easiest)
+### Option A: Use the generated Word document (recommended)
+
+A submission-ready Word file is already generated at:
+
+`report/FINAL_REPORT.docx`
+
+To regenerate it after edits:
+
+```powershell
+.\.venv312\Scripts\python.exe report\generate_report_docx.py
+```
+
+Open the `.docx` in Microsoft Word, review formatting, add your video link in
+Appendix B, then save/export as PDF if required.
+
+### Option B: VS Code extension
 
 1. Install extension: **Markdown PDF**
 2. Open `report/FINAL_REPORT.md`
