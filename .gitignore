@@ -17,11 +17,16 @@ data/raw/*.csv
 data/raw/*.data
 data/processed/*.csv
 !data/processed/heart_cleveland_clean.csv
-models/
+models/*
+!models/README.md
+!models/heart_disease_pipeline.joblib
+!models/model_metadata.json
+!models/sample_input.json
 mlruns/
 mlartifacts/
 mlflow.db
 *.joblib
+!models/heart_disease_pipeline.joblib
 reports/generated/
 !reports/generated/.gitkeep
 

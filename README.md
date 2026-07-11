@@ -40,3 +40,18 @@ python -m venv .venv
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+## Reproduce The Pipeline
+
+```powershell
+python -m src.data_download
+python -m src.eda
+python -m src.train
+python -m src.package_model
+```
+
+The final packaged model is saved at:
+
+```text
+models/heart_disease_pipeline.joblib
+```
