@@ -88,3 +88,34 @@ Invoke-RestMethod `
   -ContentType "application/json" `
   -InFile api_sample_request.json
 ```
+
+## Kubernetes (Minikube)
+
+Install Minikube and kubectl, then deploy the Docker image to a local cluster.
+
+```powershell
+minikube start
+docker build -t heart-disease-api:latest .
+minikube image load heart-disease-api:latest
+kubectl apply -f k8s/
+kubectl get pods
+kubectl get svc
+minikube service heart-disease-api --url
+```
+
+Use the returned service URL to test the deployed API:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "<SERVICE_URL>/predict" `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile api_sample_request.json
+```
+
+To remove the deployment:
+
+```powershell
+kubectl delete -f k8s/
+minikube stop
+```
