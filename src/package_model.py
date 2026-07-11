@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
@@ -42,7 +41,6 @@ def build_metadata(
     metadata = {
         "model_name": model_name,
         "artifact_path": str(MODEL_PATH),
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "training_rows": int(features.shape[0]),
         "feature_count": int(features.shape[1]),
         "target_distribution": target.value_counts().sort_index().to_dict(),
