@@ -13,7 +13,9 @@ venv/
 
 # Data and generated artifacts
 data/raw/*.csv
+data/raw/*.data
 data/processed/*.csv
+!data/processed/heart_cleveland_clean.csv
 models/
 mlruns/
 mlartifacts/
@@ -27,4 +29,3 @@ mlartifacts/
 Thumbs.db
 .vscode/
 .idea/
-
