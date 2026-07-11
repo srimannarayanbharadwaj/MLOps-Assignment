@@ -55,3 +55,36 @@ The final packaged model is saved at:
 ```text
 models/heart_disease_pipeline.joblib
 ```
+
+## Serve Locally
+
+```powershell
+uvicorn src.api:app --host 127.0.0.1 --port 8000
+```
+
+In a second terminal:
+
+```powershell
+Invoke-RestMethod `
+  -Uri http://127.0.0.1:8000/predict `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile api_sample_request.json
+```
+
+## Docker
+
+```powershell
+docker build -t heart-disease-api:latest .
+docker run --rm -p 8000:8000 heart-disease-api:latest
+```
+
+Then test the running container:
+
+```powershell
+Invoke-RestMethod `
+  -Uri http://127.0.0.1:8000/predict `
+  -Method Post `
+  -ContentType "application/json" `
+  -InFile api_sample_request.json
+```
