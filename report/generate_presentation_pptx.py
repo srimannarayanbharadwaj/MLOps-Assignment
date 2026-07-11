@@ -1,4 +1,4 @@
-"""Generate the video presentation PowerPoint deck."""
+"""Generate the video presentation PowerPoint deck with embedded screenshots."""
 
 from __future__ import annotations
 
@@ -19,12 +19,43 @@ TEXT_COLOR = RGBColor(40, 40, 40)
 PLACEHOLDER_FILL = RGBColor(240, 245, 250)
 PLACEHOLDER_BORDER = RGBColor(0, 102, 153)
 
+SCREENSHOTS = {
+    "eda_class_balance": "screenshots/phase1_eda/class_balance.png",
+    "eda_histograms": "screenshots/phase1_eda/numeric_feature_histograms.png",
+    "eda_heatmap": "screenshots/phase1_eda/correlation_heatmap.png",
+    "mlflow_experiments": "screenshots/phase3_mlflow/01_experiments_page.png",
+    "mlflow_runs": "screenshots/phase3_mlflow/02_run_training_table.png",
+    "mlflow_logreg": "screenshots/phase3_mlflow/02_run_logreg_table.png",
+    "mlflow_artifacts": "screenshots/phase3_mlflow/04_logistic_artifacts.png",
+    "github_actions": "screenshots/phase3_mlflow/Screenshot 2026-07-11 214818.png",
+    "docker_run": "screenshots/phase6_docker/docker_run.png",
+    "docker_predict": "screenshots/phase6_docker/03_curl_predict_success.png",
+    "k8s_minikube": "screenshots/phase7_k8s/minicube start success.png",
+    "k8s_deploy": "screenshots/phase7_k8s/k8s deployment.png",
+    "k8s_port_forward": "screenshots/phase7_k8s/k8s port-forward.png",
+    "k8s_health": "screenshots/phase7_k8s/k8s health success.png",
+    "monitoring_logs": "screenshots/phase8_monitoring/Request logs.png",
+    "monitoring_metrics": "screenshots/phase8_monitoring/metrics endpoint.png",
+}
+
 
 def set_run_font(run, size: int = 18, bold: bool = False, color=TEXT_COLOR) -> None:
     run.font.size = Pt(size)
     run.font.bold = bold
     run.font.color.rgb = color
     run.font.name = "Calibri"
+
+
+def resolve_images(keys: list[str]) -> list[Path]:
+    paths = []
+    for key in keys:
+        rel = SCREENSHOTS.get(key)
+        if not rel:
+            continue
+        full = ROOT / rel
+        if full.exists():
+            paths.append(full)
+    return paths
 
 
 def add_title_slide(prs: Presentation) -> None:
@@ -54,10 +85,8 @@ def add_title_slide(prs: Presentation) -> None:
         set_run_font(run, size=size, bold=idx == 0, color=ACCENT_COLOR if idx == 0 else TEXT_COLOR)
         para.alignment = PP_ALIGN.CENTER
 
-    notes = slide.notes_slide.notes_text_frame
-    notes.text = (
-        "Introduce yourself, assignment name, and repository link. "
-        "State the goal: build and deploy a heart disease prediction API."
+    slide.notes_slide.notes_text_frame.text = (
+        "Introduce yourself, assignment name, and repository link."
     )
 
 
@@ -97,13 +126,7 @@ def add_screenshot_placeholder(
     width: float = 4.4,
     height: float = 4.8,
 ) -> None:
-    shape = slide.shapes.add_shape(
-        1,
-        Inches(left),
-        Inches(top),
-        Inches(width),
-        Inches(height),
-    )
+    shape = slide.shapes.add_shape(1, Inches(left), Inches(top), Inches(width), Inches(height))
     shape.fill.solid()
     shape.fill.fore_color.rgb = PLACEHOLDER_FILL
     shape.line.color.rgb = PLACEHOLDER_BORDER
@@ -114,8 +137,35 @@ def add_screenshot_placeholder(
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
-    run.text = "Insert Screenshot\n\n" + label
+    run.text = "Missing Screenshot\n\n" + label
     set_run_font(run, size=14, bold=True, color=ACCENT_COLOR)
+
+
+def add_images_panel(
+    slide,
+    image_keys: list[str],
+    left: float = 5.0,
+    top: float = 1.35,
+    width: float = 4.5,
+    height: float = 5.0,
+    fallback_label: str = "Screenshot",
+) -> None:
+    images = resolve_images(image_keys)
+    if not images:
+        add_screenshot_placeholder(slide, fallback_label, left, top, width, height)
+        return
+
+    gap = 0.08
+    slot_height = (height - gap * (len(images) - 1)) / len(images)
+    for index, image_path in enumerate(images):
+        y_pos = top + index * (slot_height + gap)
+        slide.shapes.add_picture(
+            str(image_path),
+            Inches(left),
+            Inches(y_pos),
+            width=Inches(width),
+            height=Inches(slot_height),
+        )
 
 
 def add_content_slide(
@@ -123,13 +173,14 @@ def add_content_slide(
     title: str,
     subtitle: str,
     bullets: list[str],
-    screenshot_label: str,
+    image_keys: list[str],
     speaker_notes: str,
+    fallback_label: str = "Screenshot",
 ) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_section_header(slide, title, subtitle)
     add_bullets(slide, bullets)
-    add_screenshot_placeholder(slide, screenshot_label)
+    add_images_panel(slide, image_keys, fallback_label=fallback_label)
     slide.notes_slide.notes_text_frame.text = speaker_notes
 
 
@@ -163,7 +214,7 @@ def add_architecture_slide(prs: Presentation) -> None:
         "/predict  /health  /metrics\n\n"
         "GitHub Actions + pytest validate each stage"
     )
-    box = slide.shapes.add_textbox(Inches(0.6), Inches(1.4), Inches(4.8), Inches(5.0))
+    box = slide.shapes.add_textbox(Inches(0.6), Inches(1.4), Inches(4.5), Inches(5.0))
     tf = box.text_frame
     p = tf.paragraphs[0]
     run = p.add_run()
@@ -171,13 +222,14 @@ def add_architecture_slide(prs: Presentation) -> None:
     set_run_font(run, size=15)
     run.font.name = "Consolas"
 
-    add_screenshot_placeholder(
+    add_images_panel(
         slide,
-        "Optional: architecture diagram or repo tree",
-        left=5.4,
+        ["mlflow_experiments", "k8s_deploy"],
+        left=5.2,
         top=1.4,
-        width=4.0,
+        width=4.3,
         height=5.0,
+        fallback_label="Architecture overview",
     )
     slide.notes_slide.notes_text_frame.text = (
         "Explain how each component connects from raw data to deployed API."
@@ -189,7 +241,7 @@ def add_results_slide(prs: Presentation) -> None:
     add_section_header(slide, "Model Comparison Results", "5-fold Stratified Cross-Validation")
 
     rows, cols = 3, 5
-    table_shape = slide.shapes.add_table(rows, cols, Inches(0.6), Inches(1.5), Inches(8.8), Inches(1.5))
+    table_shape = slide.shapes.add_table(rows, cols, Inches(0.5), Inches(1.4), Inches(4.6), Inches(1.3))
     table = table_shape.table
 
     headers = ["Model", "Accuracy", "Precision", "Recall", "ROC-AUC"]
@@ -203,7 +255,7 @@ def add_results_slide(prs: Presentation) -> None:
         cell.text = header
         for paragraph in cell.text_frame.paragraphs:
             for run in paragraph.runs:
-                set_run_font(run, size=14, bold=True, color=RGBColor(255, 255, 255))
+                set_run_font(run, size=12, bold=True, color=RGBColor(255, 255, 255))
         cell.fill.solid()
         cell.fill.fore_color.rgb = TITLE_COLOR
 
@@ -213,15 +265,31 @@ def add_results_slide(prs: Presentation) -> None:
             cell.text = value
             for paragraph in cell.text_frame.paragraphs:
                 for run in paragraph.runs:
-                    set_run_font(run, size=14, bold=col_idx == 0)
+                    set_run_font(run, size=12, bold=col_idx == 0)
 
-    bullets = [
-        "Selected model: Logistic Regression",
-        "Reason: highest ROC-AUC (0.9188)",
-        "Random Forest had slightly higher recall, but gap is small",
-        "Logistic Regression is easier to explain and deploy",
-    ]
-    add_bullets(slide, bullets, left=0.6, top=3.4, width=8.8, height=2.5)
+    add_bullets(
+        slide,
+        [
+            "Selected model: Logistic Regression",
+            "Reason: highest ROC-AUC (0.9188)",
+            "Random Forest had slightly higher recall",
+            "Logistic Regression is easier to explain and deploy",
+        ],
+        left=0.5,
+        top=3.0,
+        width=4.6,
+        height=2.2,
+    )
+
+    add_images_panel(
+        slide,
+        ["mlflow_logreg", "mlflow_artifacts"],
+        left=5.2,
+        top=1.4,
+        width=4.3,
+        height=5.0,
+        fallback_label="MLflow run metrics and artifacts",
+    )
     slide.notes_slide.notes_text_frame.text = (
         "Walk through the metrics table and justify model selection."
     )
@@ -280,8 +348,9 @@ def build_presentation() -> Presentation:
             "GitHub repo stores code, tests, CI, and deployment files",
             "Goal: reproducible MLOps workflow from clean clone",
         ],
-        "VS Code project tree or README",
-        "Show project folders and mention Python 3.12 requirement.",
+        ["mlflow_experiments"],
+        "Show project folders live and mention Python 3.12 requirement.",
+        "MLflow experiments overview",
     )
 
     add_content_slide(
@@ -295,8 +364,9 @@ def build_presentation() -> Presentation:
             "Class balance: 164 vs 139",
             "EDA: histograms, correlation heatmap, class chart",
         ],
-        "class_balance.png / histograms / heatmap",
+        ["eda_class_balance", "eda_histograms", "eda_heatmap"],
         "Run data_download and explain what each EDA plot shows.",
+        "EDA plots",
     )
 
     add_content_slide(
@@ -310,8 +380,9 @@ def build_presentation() -> Presentation:
             "Evaluation: 5-fold stratified cross-validation",
             "Metrics: accuracy, precision, recall, ROC-AUC",
         ],
-        "model_cv_metrics.csv",
+        ["mlflow_runs"],
         "Show preprocessing pipeline and cross-validation results.",
+        "MLflow run comparison",
     )
 
     add_results_slide(prs)
@@ -327,8 +398,9 @@ def build_presentation() -> Presentation:
             "MLflow UI used for experiment comparison",
             "Experiment: heart-disease-classification",
         ],
-        "MLflow experiments / runs / artifacts",
+        ["mlflow_experiments", "mlflow_runs"],
         "Start mlflow ui and show runs table and artifacts.",
+        "MLflow experiments and runs",
     )
 
     add_content_slide(
@@ -342,8 +414,9 @@ def build_presentation() -> Presentation:
             "Sample input: sample_input.json",
             "Fresh clone + requirements.txt reproduces model",
         ],
-        "models/ folder contents",
+        ["mlflow_artifacts"],
         "Run package_model and show saved artifacts.",
+        "Packaged model artifacts",
     )
 
     add_content_slide(
@@ -357,8 +430,9 @@ def build_presentation() -> Presentation:
             "GitHub Actions: lint -> pytest -> training job",
             "CI ensures reproducibility and catches regressions",
         ],
-        "GitHub Actions green workflow",
+        ["github_actions"],
         "Run pytest locally and show green Actions run in browser.",
+        "GitHub Actions workflow",
     )
 
     add_content_slide(
@@ -372,8 +446,9 @@ def build_presentation() -> Presentation:
             "Live prediction returns class + confidence",
             "Example: prediction=0, confidence=0.8292",
         ],
-        "docker build / docker run / predict response",
+        ["docker_run", "docker_predict"],
         "Build image, run container, and call /predict live.",
+        "Docker run and predict response",
     )
 
     add_content_slide(
@@ -387,8 +462,9 @@ def build_presentation() -> Presentation:
             "Readiness/liveness probes use /health",
             "port-forward exposes service locally",
         ],
-        "kubectl get pods / get svc / health check",
+        ["k8s_minikube", "k8s_deploy", "k8s_health"],
         "Show pod Running 1/1 and successful health response.",
+        "Minikube and Kubernetes deployment",
     )
 
     add_content_slide(
@@ -402,8 +478,9 @@ def build_presentation() -> Presentation:
             "Tracks request count and duration histograms",
             "Supports production observability basics",
         ],
-        "Request logs + /metrics output",
+        ["monitoring_logs", "monitoring_metrics"],
         "Start uvicorn, send requests, show logs and metrics.",
+        "Request logs and metrics endpoint",
     )
 
     add_architecture_slide(prs)
@@ -430,6 +507,9 @@ def main() -> None:
     prs = build_presentation()
     prs.save(OUTPUT)
     print(f"Created {OUTPUT}")
+    for key, rel in SCREENSHOTS.items():
+        status = "ok" if (ROOT / rel).exists() else "missing"
+        print(f"  [{status}] {rel}")
 
 
 if __name__ == "__main__":
