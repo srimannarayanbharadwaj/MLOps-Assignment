@@ -1,9 +1,9 @@
 # Heart Disease MLOps — Final Report
 
-**Student:** _[Your Name]_  
-**Course:** MLOps Assignment 01 (2026)  
+**Student:** _Sriman Narayan Bharadwaj R_  
+**Course:** MLOps Assignment 01  
 **Repository:** https://github.com/srimannarayanbharadwaj/MLOps-Assignment  
-**Date:** _[Submission Date]_
+**Date:** _12-07-2026_
 
 ---
 
@@ -348,3 +348,4 @@ https://github.com/srimannarayanbharadwaj/MLOps-Assignment
 _[Add your video link or filename here after recording.]_
 
 See `report/VIDEO_SCRIPT.md` for the recording checklist.
+See `report/VIDEO_NARRATION_SCRIPT.md` for the full read-aloud script.
