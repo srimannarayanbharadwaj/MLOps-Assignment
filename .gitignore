@@ -19,6 +19,7 @@ data/processed/*.csv
 models/
 mlruns/
 mlartifacts/
+mlflow.db
 *.joblib
 reports/generated/
 !reports/generated/.gitkeep
