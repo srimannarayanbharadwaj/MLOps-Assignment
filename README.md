@@ -135,3 +135,13 @@ In a second terminal:
 Invoke-RestMethod -Uri http://127.0.0.1:8080/health -Method Get
 Invoke-RestMethod -Uri http://127.0.0.1:8080/metrics -Method Get
 ```
+
+## Final Report and Video (Phase 9)
+
+Report templates are in `report/`:
+
+- `report/FINAL_REPORT.md` — personalize and export to PDF
+- `report/VIDEO_SCRIPT.md` — end-to-end recording checklist
+- `report/EXPORT_TO_PDF.md` — PDF export instructions
+
+Repository: https://github.com/srimannarayanbharadwaj/MLOps-Assignment
